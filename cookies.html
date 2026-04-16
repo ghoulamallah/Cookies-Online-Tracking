@@ -1,0 +1,1598 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cookies & Online Tracking — Interactive Learning</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Outfit:wght@300;400;500;600&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ===== ROOT VARS ===== */
+:root {
+  --bg: #f0f4f8;
+  --bg2: #e8edf3;
+  --surface: #ffffff;
+  --surface2: #f7f9fc;
+  --accent: #00875a;
+  --accent2: #005c3d;
+  --accent-glow: rgba(0,135,90,0.18);
+  --accent3: #ff6b2b;
+  --accent4: #7c3aed;
+  --text: #0f172a;
+  --text2: #475569;
+  --text3: #94a3b8;
+  --border: #e2e8f0;
+  --border2: #cbd5e1;
+  --code-bg: #0d1117;
+  --danger: #ef4444;
+  --warn: #f59e0b;
+  --info: #3b82f6;
+  --success: #10b981;
+  --r: 12px;
+  --r2: 20px;
+  --shadow: 0 4px 24px rgba(0,0,0,0.07);
+  --shadow2: 0 8px 40px rgba(0,0,0,0.12);
+  --nav-h: 68px;
+}
+[data-theme="dark"] {
+  --bg: #07090e;
+  --bg2: #0d1117;
+  --surface: #111827;
+  --surface2: #1a2234;
+  --accent: #00d68f;
+  --accent2: #00a36c;
+  --accent-glow: rgba(0,214,143,0.2);
+  --accent3: #ff7c40;
+  --accent4: #a78bfa;
+  --text: #f1f5f9;
+  --text2: #94a3b8;
+  --text3: #475569;
+  --border: #1e293b;
+  --border2: #334155;
+  --shadow: 0 4px 24px rgba(0,0,0,0.3);
+  --shadow2: 0 8px 40px rgba(0,0,0,0.5);
+}
+
+/* ===== RESET ===== */
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;scroll-padding-top:84px}
+body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);font-size:16px;line-height:1.7;overflow-x:hidden;transition:background .4s,color .4s}
+
+/* ===== PROGRESS BAR ===== */
+#progress-bar{position:fixed;top:0;left:0;height:3px;background:linear-gradient(90deg,var(--accent),var(--accent3));width:0%;z-index:9999;transition:width .1s;box-shadow:0 0 8px var(--accent)}
+
+/* ===== PARTICLES CANVAS ===== */
+#particleCanvas{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0;opacity:.4}
+
+/* ===== NAV ===== */
+nav{position:fixed;top:3px;left:0;right:0;height:var(--nav-h);background:rgba(255,255,255,0.85);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid var(--border);z-index:1000;display:flex;align-items:center;padding:0 1.5rem;gap:1rem;transition:background .4s}
+[data-theme="dark"] nav{background:rgba(7,9,14,0.88)}
+.nav-brand{display:flex;align-items:center;gap:10px;text-decoration:none;flex-shrink:0}
+.nav-brand-icon{width:38px;height:38px;border-radius:10px;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-size:18px;transition:transform .3s}
+.nav-brand-icon:hover{transform:rotate(10deg) scale(1.05)}
+.nav-brand-text{font-family:'Syne',sans-serif;font-weight:800;font-size:1.1rem;color:var(--text)}
+.nav-brand-text span{color:var(--accent)}
+.nav-spacer{flex:1}
+.nav-actions{display:flex;align-items:center;gap:8px}
+.dark-btn{background:none;border:1.5px solid var(--border2);border-radius:50px;padding:6px 14px;cursor:pointer;color:var(--text2);font-family:'Outfit',sans-serif;font-size:13px;display:flex;align-items:center;gap:6px;transition:all .25s}
+.dark-btn:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-glow)}
+.hamburger{display:none;background:none;border:none;cursor:pointer;padding:7px;flex-direction:column;gap:5px;border-radius:8px}
+.hamburger span{display:block;width:22px;height:2px;background:var(--text);border-radius:2px;transition:.3s}
+.hamburger.open span:nth-child(1){transform:translateY(7px) rotate(45deg)}
+.hamburger.open span:nth-child(2){opacity:0}
+.hamburger.open span:nth-child(3){transform:translateY(-7px) rotate(-45deg)}
+
+/* ===== MOBILE DRAWER ===== */
+#mobileDrawer{position:fixed;top:var(--nav-h);left:0;right:0;bottom:0;background:var(--surface);z-index:998;transform:translateX(-100%);transition:transform .35s cubic-bezier(.4,0,.2,1);overflow-y:auto;padding:1.5rem}
+#mobileDrawer.open{transform:translateX(0)}
+.mob-nav-link{display:flex;align-items:center;gap:10px;padding:12px 0;color:var(--text2);text-decoration:none;font-size:15px;border-bottom:1px solid var(--border)}
+.mob-nav-link:hover{color:var(--accent)}
+.mob-nav-link .mob-num{font-family:'Fira Code',monospace;font-size:11px;color:var(--accent);background:var(--accent-glow);padding:2px 7px;border-radius:5px}
+
+/* ===== LAYOUT ===== */
+.layout{display:flex;margin-top:var(--nav-h);position:relative;z-index:1}
+aside{width:270px;flex-shrink:0;position:sticky;top:var(--nav-h);height:calc(100vh - var(--nav-h));overflow-y:auto;border-right:1px solid var(--border);padding:1.5rem 1rem;background:var(--surface);transition:background .4s}
+aside::-webkit-scrollbar{width:3px}
+aside::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+.toc-head{font-family:'Syne',sans-serif;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:var(--text3);margin-bottom:1rem;padding-left:8px}
+.toc-link{display:flex;align-items:center;gap:8px;padding:8px 10px;color:var(--text2);text-decoration:none;font-size:13px;border-radius:8px;border-left:2px solid transparent;transition:all .2s;margin-bottom:2px}
+.toc-link:hover,.toc-link.active{color:var(--accent);background:var(--accent-glow);border-left-color:var(--accent)}
+.toc-num{font-family:'Fira Code',monospace;font-size:10px;opacity:.6;min-width:18px}
+
+/* ===== MAIN CONTENT ===== */
+main{flex:1;min-width:0;padding:2.5rem clamp(1rem,4vw,2.5rem);max-width:860px}
+section{margin-bottom:3.5rem;scroll-margin-top:84px}
+
+/* ===== HERO ===== */
+.hero{background:var(--surface);border:1px solid var(--border);border-radius:24px;padding:3.5rem 2.5rem;position:relative;overflow:hidden;margin-bottom:3rem}
+.hero-bg-art{position:absolute;right:-80px;top:-80px;width:400px;height:400px;border-radius:50%;background:radial-gradient(circle,var(--accent-glow) 0%,transparent 70%);pointer-events:none}
+.hero-badge{display:inline-flex;align-items:center;gap:7px;background:var(--accent-glow);border:1px solid var(--accent);border-radius:50px;padding:5px 14px;font-size:12px;font-weight:600;color:var(--accent);letter-spacing:.05em;margin-bottom:1.25rem;animation:fadeSlideDown .6s ease both}
+@keyframes fadeSlideDown{from{opacity:0;transform:translateY(-12px)}to{opacity:1;transform:translateY(0)}}
+.hero h1{font-family:'Syne',sans-serif;font-size:clamp(2.2rem,5.5vw,3.4rem);font-weight:800;line-height:1.12;margin-bottom:.9rem;animation:fadeSlideDown .7s .1s ease both}
+.hero h1 .highlight{color:var(--accent)}
+.hero h1 .highlight2{color:var(--accent3)}
+.hero-sub{color:var(--text2);font-size:1.05rem;max-width:580px;margin-bottom:2rem;animation:fadeSlideDown .7s .2s ease both}
+.hero-btns{display:flex;flex-wrap:wrap;gap:12px;animation:fadeSlideDown .7s .3s ease both}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:13px 26px;border-radius:50px;font-size:14px;font-weight:600;cursor:pointer;text-decoration:none;transition:all .25s;font-family:'Outfit',sans-serif;border:none;position:relative;overflow:hidden}
+.btn::after{content:'';position:absolute;inset:0;background:rgba(255,255,255,.0);transition:.3s}
+.btn:hover::after{background:rgba(255,255,255,.08)}
+.btn-primary{background:var(--accent);color:#fff;box-shadow:0 4px 20px var(--accent-glow)}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 28px var(--accent-glow)}
+.btn-ghost{background:transparent;color:var(--accent);border:1.5px solid var(--accent)}
+.btn-ghost:hover{background:var(--accent-glow)}
+.hero-stats{display:flex;gap:2rem;margin-top:2rem;flex-wrap:wrap;animation:fadeSlideDown .7s .4s ease both}
+.hero-stat{text-align:center}
+.hero-stat .num{font-family:'Syne',sans-serif;font-size:1.6rem;font-weight:800;color:var(--accent)}
+.hero-stat .lbl{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em}
+
+/* ===== SECTION HEADERS ===== */
+.sec-header{display:flex;align-items:center;gap:12px;margin-bottom:1.5rem}
+.sec-num{font-family:'Fira Code',monospace;font-size:11px;color:var(--accent);background:var(--accent-glow);padding:3px 9px;border-radius:6px;border:1px solid var(--accent);flex-shrink:0}
+h2{font-family:'Syne',sans-serif;font-size:1.75rem;font-weight:800;color:var(--text)}
+h3{font-family:'Syne',sans-serif;font-size:1.1rem;font-weight:700;color:var(--text);margin:1.25rem 0 .6rem}
+p{color:var(--text2);margin-bottom:.9rem}
+strong{color:var(--text)}
+
+/* ===== CARDS ===== */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r2);padding:1.5rem;margin-bottom:1rem;box-shadow:var(--shadow);transition:all .3s}
+.card:hover{box-shadow:var(--shadow2);transform:translateY(-2px)}
+.card-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1rem;margin:1rem 0}
+.card-accent{border-left:4px solid var(--accent)}
+.card-danger{border-left:4px solid var(--danger)}
+.card-warn{border-left:4px solid var(--warn)}
+.card-info{border-left:4px solid var(--info)}
+
+/* ===== INTERACTIVE EXPANDABLE NODES ===== */
+.expand-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:.75rem;margin:1rem 0}
+.expand-node{background:var(--surface);border:2px solid var(--border);border-radius:var(--r2);padding:1.25rem 1rem;cursor:pointer;transition:all .3s;text-align:center;position:relative;overflow:hidden}
+.expand-node::before{content:'';position:absolute;inset:0;opacity:0;transition:.3s;border-radius:var(--r2)}
+.expand-node:hover,.expand-node.active{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-glow)}
+.expand-node.active::before{opacity:.06;background:var(--accent)}
+.expand-node .en-icon{font-size:2rem;margin-bottom:.5rem;display:block;transition:transform .3s}
+.expand-node:hover .en-icon,.expand-node.active .en-icon{transform:scale(1.15)}
+.expand-node .en-title{font-weight:700;font-size:.9rem;color:var(--text);margin-bottom:.25rem}
+.expand-node .en-sub{font-size:.75rem;color:var(--text3)}
+.expand-node .en-pulse{position:absolute;top:8px;right:8px;width:8px;height:8px;border-radius:50%;background:var(--accent);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.8)}}
+.expand-panel{background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--r2);overflow:hidden;max-height:0;transition:max-height .5s cubic-bezier(.4,0,.2,1),padding .4s,opacity .4s;opacity:0;padding:0 1.5rem;margin-bottom:1rem}
+.expand-panel.open{max-height:600px;opacity:1;padding:1.5rem}
+.expand-panel-title{font-family:'Syne',sans-serif;font-weight:700;font-size:1.05rem;color:var(--text);margin-bottom:.75rem;display:flex;align-items:center;gap:8px}
+
+/* ===== CODE BLOCKS ===== */
+.code-wrap{position:relative;margin:1rem 0;border-radius:var(--r);overflow:hidden;background:var(--code-bg);border:1px solid rgba(255,255,255,.08)}
+.code-bar{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;background:rgba(255,255,255,.04);border-bottom:1px solid rgba(255,255,255,.07)}
+.code-dots{display:flex;gap:6px}
+.code-dot{width:11px;height:11px;border-radius:50%}
+.dot-r{background:#ff5f57}.dot-y{background:#febc2e}.dot-g{background:#28c840}
+.code-lang{font-size:11px;color:#6e7681;font-family:'Fira Code',monospace}
+.copy-btn{background:rgba(255,255,255,.08);border:none;color:#8b949e;padding:5px 11px;border-radius:6px;font-size:11px;cursor:pointer;font-family:'Outfit',sans-serif;transition:.2s;display:flex;align-items:center;gap:5px}
+.copy-btn:hover{background:rgba(255,255,255,.15);color:#e6edf3}
+.copy-btn.done{color:#3fb950}
+pre{padding:1.2rem 1.4rem;overflow-x:auto;font-size:12.5px;line-height:1.8}
+code{font-family:'Fira Code',monospace;color:#c9d1d9}
+.t-kw{color:#ff7b72}.t-str{color:#a5d6ff}.t-fn{color:#d2a8ff}.t-cm{color:#6e7681;font-style:italic}.t-num{color:#f2cc60}.t-prop{color:#79c0ff}.t-ok{color:#3fb950}.t-err{color:#ff7b72}.t-info{color:#f2cc60}
+
+/* ===== FLOW DIAGRAM ===== */
+.flow-container{display:flex;align-items:center;flex-wrap:wrap;gap:.5rem;margin:1rem 0;padding:1.25rem;background:var(--surface);border:1px solid var(--border);border-radius:var(--r2)}
+.flow-step{background:var(--surface2);border:2px solid var(--border);border-radius:10px;padding:10px 16px;font-size:13px;font-weight:600;color:var(--text);text-align:center;cursor:pointer;transition:all .25s;min-width:100px}
+.flow-step:hover,.flow-step.lit{border-color:var(--accent);background:var(--accent-glow);color:var(--accent)}
+.flow-step.danger-step{border-color:var(--danger);background:rgba(239,68,68,.08);color:var(--danger)}
+.flow-step.warn-step{border-color:var(--warn);background:rgba(245,158,11,.08);color:var(--warn)}
+.flow-arrow{color:var(--text3);font-size:20px;user-select:none}
+
+/* ===== COMPARISON TABLE ===== */
+.table-wrap{overflow-x:auto;border-radius:var(--r2);border:1px solid var(--border);margin:1rem 0;box-shadow:var(--shadow)}
+table{width:100%;border-collapse:collapse;background:var(--surface)}
+th{background:var(--surface2);padding:13px 16px;font-size:12.5px;font-weight:700;color:var(--text);border-bottom:2px solid var(--border);font-family:'Syne',sans-serif;text-transform:uppercase;letter-spacing:.05em}
+td{padding:11px 16px;font-size:13px;color:var(--text2);border-bottom:1px solid var(--border)}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:var(--accent-glow)}
+.pill{display:inline-flex;align-items:center;gap:4px;padding:2px 10px;border-radius:50px;font-size:11px;font-weight:600}
+.pill-g{background:rgba(16,185,129,.12);color:#10b981}
+.pill-r{background:rgba(239,68,68,.12);color:#ef4444}
+.pill-b{background:rgba(59,130,246,.12);color:#3b82f6}
+.pill-a{background:rgba(245,158,11,.12);color:#f59e0b}
+
+/* ===== DEMO TERMINAL ===== */
+.terminal{background:#0d1117;border-radius:var(--r2);overflow:hidden;border:1px solid rgba(255,255,255,.1);box-shadow:var(--shadow2);margin:1rem 0}
+.terminal-bar{display:flex;align-items:center;gap:8px;padding:12px 16px;background:rgba(255,255,255,.04);border-bottom:1px solid rgba(255,255,255,.07)}
+.terminal-title{flex:1;font-size:12px;color:#6e7681;font-family:'Fira Code',monospace;text-align:center}
+#termOutput{min-height:160px;max-height:280px;overflow-y:auto;padding:1rem 1.25rem;font-family:'Fira Code',monospace;font-size:12px;color:#c9d1d9;line-height:1.9;scroll-behavior:smooth}
+#termOutput::-webkit-scrollbar{width:3px}
+#termOutput::-webkit-scrollbar-thumb{background:#333}
+.t-line{display:block;animation:fadeIn .3s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateX(-4px)}to{opacity:1;transform:translateX(0)}}
+
+/* ===== COOKIE INSPECTOR ===== */
+#cookieInspector{background:var(--surface);border:1px solid var(--border);border-radius:var(--r2);padding:1.25rem;margin-top:1rem;display:none}
+#cookieInspector.show{display:block;animation:fadeSlideDown .4s ease}
+.ci-title{font-family:'Fira Code',monospace;font-size:12px;color:var(--accent);margin-bottom:.75rem;display:flex;align-items:center;gap:8px}
+.ci-row{display:flex;align-items:flex-start;gap:.75rem;padding:.5rem .75rem;border-radius:8px;font-size:12px;margin-bottom:4px;font-family:'Fira Code',monospace}
+.ci-key{color:var(--text3);min-width:100px}
+.ci-val{color:var(--info);font-weight:500}
+.ci-row:nth-child(even){background:var(--surface2)}
+
+/* ===== TRACKER ECOSYSTEM ===== */
+.tracker-ecosystem{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:.75rem;margin:1rem 0}
+.tracker-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:1rem;cursor:pointer;transition:all .3s;position:relative;overflow:hidden}
+.tracker-card::after{content:'click to expand';position:absolute;bottom:6px;right:8px;font-size:10px;color:var(--text3);font-family:'Fira Code',monospace;opacity:0;transition:.3s}
+.tracker-card:hover::after{opacity:1}
+.tracker-card:hover{transform:translateY(-3px);box-shadow:var(--shadow2)}
+.tc-icon{font-size:1.75rem;margin-bottom:.5rem}
+.tc-name{font-weight:700;font-size:.85rem;margin-bottom:.25rem}
+.tc-type{font-size:.75rem;color:var(--text3)}
+.tc-danger{position:absolute;top:8px;right:8px;width:8px;height:8px;border-radius:50%;background:var(--danger);box-shadow:0 0 6px var(--danger)}
+
+/* ===== PRIVACY LAW CARDS ===== */
+.law-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r2);padding:1.5rem;margin-bottom:1rem;cursor:pointer;transition:all .3s;position:relative}
+.law-card:hover{border-color:var(--info);transform:translateX(4px)}
+.law-badge{display:inline-block;padding:4px 12px;border-radius:50px;font-family:'Syne',sans-serif;font-size:13px;font-weight:700;margin-bottom:.75rem}
+.law-badge.gdpr{background:rgba(59,130,246,.12);color:#3b82f6}
+.law-badge.ccpa{background:rgba(245,158,11,.12);color:#f59e0b}
+.law-badge.lg{background:rgba(16,185,129,.12);color:#10b981}
+.law-details{max-height:0;overflow:hidden;transition:max-height .4s ease,opacity .4s;opacity:0}
+.law-card.open .law-details{max-height:400px;opacity:1}
+
+/* ===== BEST PRACTICES ===== */
+.bp-item{display:flex;align-items:flex-start;gap:1rem;padding:1rem 1.25rem;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);margin-bottom:.75rem;transition:all .3s;cursor:pointer}
+.bp-item:hover{border-color:var(--success);background:rgba(16,185,129,.05);transform:translateX(4px)}
+.bp-check{width:32px;height:32px;border-radius:50%;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;transition:.3s;background:var(--surface2)}
+.bp-item:hover .bp-check,.bp-item.checked .bp-check{border-color:var(--success);background:rgba(16,185,129,.12);transform:scale(1.1)}
+.bp-item.checked{border-color:var(--success);background:rgba(16,185,129,.06)}
+.bp-item.checked .bp-check::before{content:'✓';color:var(--success)}
+.bp-label{font-weight:600;font-size:.9rem;margin-bottom:.25rem}
+.bp-desc{font-size:.8rem;color:var(--text3);line-height:1.5}
+
+/* ===== QUIZ ===== */
+.quiz-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r2);padding:1.5rem;margin-bottom:1.25rem;position:relative}
+.quiz-num{font-family:'Fira Code',monospace;font-size:11px;color:var(--accent);margin-bottom:.75rem}
+.quiz-q-text{font-weight:600;font-size:.95rem;color:var(--text);margin-bottom:1rem;line-height:1.5}
+.quiz-opts{display:flex;flex-direction:column;gap:.5rem}
+.quiz-opt{display:flex;align-items:center;gap.75rem;gap:.6rem;padding:.75rem 1rem;border:1.5px solid var(--border);border-radius:10px;cursor:pointer;font-size:.88rem;color:var(--text2);transition:all .2s;background:var(--surface2)}
+.quiz-opt:hover:not(.disabled){border-color:var(--accent);color:var(--accent);background:var(--accent-glow);transform:translateX(4px)}
+.quiz-opt.correct{border-color:var(--success)!important;background:rgba(16,185,129,.1)!important;color:var(--success)!important}
+.quiz-opt.wrong{border-color:var(--danger)!important;background:rgba(239,68,68,.1)!important;color:var(--danger)!important}
+.quiz-opt.disabled{cursor:default}
+.quiz-feedback{margin-top:.75rem;font-size:.82rem;padding:.6rem .9rem;border-radius:8px;display:none;font-weight:500}
+.feedback-ok{background:rgba(16,185,129,.1);color:var(--success);display:flex;align-items:center;gap:6px}
+.feedback-no{background:rgba(239,68,68,.1);color:var(--danger);display:flex;align-items:center;gap:6px}
+.quiz-score-board{background:var(--surface);border:2px solid var(--accent);border-radius:var(--r2);padding:2rem;text-align:center;margin-top:1.5rem;display:none;animation:fadeSlideDown .5s ease}
+.qsb-score{font-family:'Syne',sans-serif;font-size:3rem;font-weight:800;color:var(--accent)}
+.qsb-label{color:var(--text2);font-size:.9rem;margin-bottom:1rem}
+
+/* ===== COOKIE ANATOMY VISUAL ===== */
+.cookie-anatomy{background:var(--surface);border:1px solid var(--border);border-radius:var(--r2);padding:1.5rem;margin:1rem 0}
+.ca-row{display:flex;align-items:center;gap:.75rem;padding:.6rem .9rem;border-radius:9px;margin-bottom:.4rem;cursor:pointer;transition:all .25s;border:1.5px solid transparent}
+.ca-row:hover,.ca-row.active{border-color:var(--accent);background:var(--accent-glow)}
+.ca-key{font-family:'Fira Code',monospace;font-weight:500;font-size:.8rem;color:var(--accent);min-width:100px;background:var(--bg2);padding:3px 10px;border-radius:6px;text-align:center}
+.ca-eq{color:var(--text3);font-size:.9rem;flex-shrink:0}
+.ca-val{font-family:'Fira Code',monospace;font-size:.8rem;color:var(--info)}
+.ca-desc{margin-left:auto;font-size:.75rem;color:var(--text3);max-width:200px;text-align:right}
+.ca-tooltip{background:var(--code-bg);color:#e6edf3;font-size:.78rem;padding:.75rem 1rem;border-radius:9px;margin-top:.25rem;display:none;font-family:'Fira Code',monospace;line-height:1.7}
+.ca-row.active + .ca-tooltip{display:block}
+
+/* ===== TRACKING JOURNEY DIAGRAM ===== */
+.journey{position:relative;padding:1.5rem;background:var(--surface);border:1px solid var(--border);border-radius:var(--r2);overflow:hidden;margin:1rem 0}
+.journey-steps{display:flex;flex-direction:column;gap:0}
+.jstep{display:flex;align-items:flex-start;gap:1rem;padding:1rem 0;border-bottom:1px dashed var(--border);cursor:pointer;transition:all .25s}
+.jstep:last-child{border-bottom:none}
+.jstep:hover{padding-left:8px}
+.jstep-icon{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.25rem;flex-shrink:0;transition:transform .3s;background:var(--surface2);border:1px solid var(--border)}
+.jstep:hover .jstep-icon{transform:scale(1.1) rotate(5deg)}
+.jstep-title{font-weight:700;font-size:.9rem;margin-bottom:.25rem;color:var(--text)}
+.jstep-desc{font-size:.8rem;color:var(--text3);line-height:1.5}
+.jstep-expand{max-height:0;overflow:hidden;transition:max-height .4s;background:var(--code-bg);border-radius:8px;font-family:'Fira Code',monospace;font-size:11px;color:#c9d1d9;padding:0 .75rem;margin-top:.5rem;margin-left:56px}
+.jstep.open .jstep-expand{max-height:200px;padding:.75rem}
+
+/* ===== CONSENT BANNER ===== */
+#consentBanner{position:fixed;bottom:0;left:0;right:0;background:var(--surface);border-top:2px solid var(--accent);padding:1.25rem 1.5rem;z-index:2000;display:flex;flex-wrap:wrap;align-items:center;gap:1rem;box-shadow:0 -8px 40px rgba(0,0,0,.15);transform:translateY(100%);transition:transform .5s cubic-bezier(.4,0,.2,1)}
+#consentBanner.show{transform:translateY(0)}
+.consent-text{flex:1;min-width:240px;font-size:.85rem;color:var(--text2)}
+.consent-text strong{color:var(--accent)}
+.consent-btns{display:flex;gap:.6rem;flex-wrap:wrap}
+.cbtn{padding:8px 18px;border-radius:50px;font-size:13px;font-weight:600;cursor:pointer;border:none;font-family:'Outfit',sans-serif;transition:all .25s}
+.cbtn-accept{background:var(--accent);color:#fff}
+.cbtn-accept:hover{transform:translateY(-1px);box-shadow:0 4px 16px var(--accent-glow)}
+.cbtn-reject{background:var(--surface2);color:var(--text2);border:1px solid var(--border)}
+.cbtn-reject:hover{border-color:var(--danger);color:var(--danger)}
+
+/* ===== CONCLUSION ===== */
+.conclusion{background:linear-gradient(135deg,var(--accent) 0%,var(--accent2) 100%);border-radius:24px;padding:3rem 2.5rem;text-align:center;color:#fff;position:relative;overflow:hidden}
+.conclusion::before{content:'';position:absolute;inset:0;background:url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Ccircle cx='30' cy='30' r='2'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")}
+.conclusion h2{font-family:'Syne',sans-serif;font-size:clamp(1.5rem,4vw,2.2rem);font-weight:800;color:#fff;margin-bottom:.75rem;position:relative}
+.conclusion .big-quote{font-family:'Syne',sans-serif;font-size:clamp(1.1rem,3vw,1.5rem);color:rgba(255,255,255,.9);font-style:italic;margin:1.5rem 0;position:relative;line-height:1.4}
+.conclusion p{color:rgba(255,255,255,.8);position:relative}
+
+/* ===== FOOTER ===== */
+footer{background:var(--surface);border-top:1px solid var(--border);padding:2.5rem clamp(1rem,4vw,2.5rem);position:relative;z-index:1}
+.footer-inner{max-width:900px;margin:0 auto;display:flex;flex-wrap:wrap;gap:1.5rem;justify-content:space-between;align-items:flex-start}
+.footer-brand{display:flex;align-items:center;gap:10px;font-family:'Syne',sans-serif;font-weight:800;font-size:1.1rem;margin-bottom:.75rem}
+.footer-brand span{color:var(--accent)}
+.footer-info{font-size:.82rem;color:var(--text3);line-height:2}
+.footer-info strong{color:var(--text2)}
+.footer-tag{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:20px;background:var(--accent-glow);border:1px solid var(--accent);color:var(--accent);font-size:11px;font-weight:600;font-family:'Fira Code',monospace}
+
+/* ===== MISC ===== */
+.divider{height:1px;background:linear-gradient(90deg,transparent,var(--border),transparent);margin:2rem 0}
+.callout{display:flex;gap:.75rem;padding:1rem 1.25rem;border-radius:var(--r);margin:1rem 0;border:1px solid}
+.callout-info{background:rgba(59,130,246,.08);border-color:rgba(59,130,246,.25)}
+.callout-warn{background:rgba(245,158,11,.08);border-color:rgba(245,158,11,.25)}
+.callout-danger{background:rgba(239,68,68,.08);border-color:rgba(239,68,68,.25)}
+.callout-ok{background:rgba(16,185,129,.08);border-color:rgba(16,185,129,.25)}
+.callout-icon{font-size:1.1rem;flex-shrink:0;margin-top:2px}
+.callout-body{font-size:.875rem;color:var(--text2);line-height:1.6}
+.callout-body strong{color:var(--text)}
+.tag{display:inline-block;padding:2px 9px;border-radius:5px;font-size:11.5px;font-weight:600;margin:2px;font-family:'Fira Code',monospace}
+.tag-green{background:rgba(16,185,129,.12);color:#10b981}
+.tag-red{background:rgba(239,68,68,.12);color:#ef4444}
+.tag-blue{background:rgba(59,130,246,.12);color:#3b82f6}
+.tag-amber{background:rgba(245,158,11,.12);color:#f59e0b}
+.tag-purple{background:rgba(124,58,237,.12);color:#7c3aed}
+
+/* demo buttons grid */
+.demo-btns{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:.65rem;margin:1rem 0}
+.demo-btn{border:none;border-radius:10px;padding:12px 16px;font-size:13px;font-weight:600;cursor:pointer;font-family:'Outfit',sans-serif;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:7px;position:relative;overflow:hidden}
+.demo-btn::before{content:'';position:absolute;inset:0;background:rgba(255,255,255,0);transition:.3s}
+.demo-btn:hover::before{background:rgba(255,255,255,.08)}
+.demo-btn:active{transform:scale(.97)}
+.db-blue{background:rgba(59,130,246,.15);color:#3b82f6;border:1.5px solid rgba(59,130,246,.3)}
+.db-green{background:rgba(16,185,129,.15);color:#10b981;border:1.5px solid rgba(16,185,129,.3)}
+.db-red{background:rgba(239,68,68,.15);color:#ef4444;border:1.5px solid rgba(239,68,68,.3)}
+.db-amber{background:rgba(245,158,11,.15);color:#f59e0b;border:1.5px solid rgba(245,158,11,.3)}
+
+/* ===== RESPONSIVE ===== */
+@media(max-width:900px){
+  aside{display:none}
+  main{padding:1.5rem 1rem}
+  .hamburger{display:flex}
+  .hero{padding:2rem 1.25rem}
+}
+@media(max-width:600px){
+  .hero h1{font-size:1.9rem}
+  .card-grid{grid-template-columns:1fr}
+  .expand-grid{grid-template-columns:1fr 1fr}
+  .demo-btns{grid-template-columns:1fr 1fr}
+  .ca-desc{display:none}
+  .conclusion{padding:2rem 1.25rem}
+  .tracker-ecosystem{grid-template-columns:1fr 1fr}
+}
+@media(max-width:380px){
+  .demo-btns{grid-template-columns:1fr}
+  .expand-grid{grid-template-columns:1fr 1fr}
+}
+
+/* ===== ANIMATED ENTRY ===== */
+.reveal{opacity:0;transform:translateY(20px);transition:opacity .6s ease,transform .6s ease}
+.reveal.visible{opacity:1;transform:translateY(0)}
+
+/* fingerprint anim */
+@keyframes scanline{0%{top:-100%}100%{top:100%}}
+.fp-scan{position:relative;width:80px;height:80px;margin:0 auto;overflow:hidden;border-radius:10px;background:var(--surface2)}
+.fp-scan::after{content:'';position:absolute;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--accent),transparent);animation:scanline 2s linear infinite;top:-100%}
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+<canvas id="particleCanvas"></canvas>
+
+<!-- NAV -->
+<nav>
+  <a href="#home" class="nav-brand">
+    <div class="nav-brand-icon">🍪</div>
+    <div class="nav-brand-text">Cookie<span>Lab</span></div>
+  </a>
+  <span class="nav-spacer"></span>
+  <div class="nav-actions">
+    <button class="dark-btn" onclick="toggleDark()" id="darkBtn">🌙 Dark</button>
+    <button class="hamburger" onclick="toggleDrawer()" id="hamburger" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</nav>
+
+<!-- MOBILE DRAWER -->
+<div id="mobileDrawer">
+  <a href="#home" class="mob-nav-link" onclick="closeDrawer()"><span class="mob-num">00</span>🏠 Home</a>
+  <a href="#what-is-cookie" class="mob-nav-link" onclick="closeDrawer()"><span class="mob-num">01</span>What is a Cookie?</a>
+  <a href="#cookie-types" class="mob-nav-link" onclick="closeDrawer()"><span class="mob-num">02</span>Types of Cookies</a>
+  <a href="#how-tracking-works" class="mob-nav-link" onclick="closeDrawer()"><span class="mob-num">03</span>How Tracking Works</a>
+  <a href="#beyond-cookies" class="mob-nav-link" onclick="closeDrawer()"><span class="mob-num">04</span>Beyond Cookies</a>
+  <a href="#who-tracks" class="mob-nav-link" onclick="closeDrawer()"><span class="mob-num">05</span>Who Tracks You?</a>
+  <a href="#demo" class="mob-nav-link" onclick="closeDrawer()"><span class="mob-num">06</span>🎮 Live Demo</a>
+  <a href="#privacy-laws" class="mob-nav-link" onclick="closeDrawer()"><span class="mob-num">07</span>Privacy Laws</a>
+  <a href="#protect-privacy" class="mob-nav-link" onclick="closeDrawer()"><span class="mob-num">08</span>Protect Yourself</a>
+  <a href="#conclusion" class="mob-nav-link" onclick="closeDrawer()"><span class="mob-num">09</span>Conclusion</a>
+  <a href="#quiz" class="mob-nav-link" onclick="closeDrawer()"><span class="mob-num">10</span>🧠 Quiz</a>
+</div>
+
+<div class="layout">
+<!-- SIDEBAR -->
+<aside>
+  <div class="toc-head">Contents</div>
+  <div id="toc">
+    <a href="#home" class="toc-link active"><span class="toc-num">00</span>Home</a>
+    <a href="#what-is-cookie" class="toc-link"><span class="toc-num">01</span>What is a Cookie?</a>
+    <a href="#cookie-types" class="toc-link"><span class="toc-num">02</span>Types of Cookies</a>
+    <a href="#how-tracking-works" class="toc-link"><span class="toc-num">03</span>How Tracking Works</a>
+    <a href="#beyond-cookies" class="toc-link"><span class="toc-num">04</span>Beyond Cookies</a>
+    <a href="#who-tracks" class="toc-link"><span class="toc-num">05</span>Who Tracks You?</a>
+    <a href="#demo" class="toc-link"><span class="toc-num">06</span>🎮 Live Demo</a>
+    <a href="#privacy-laws" class="toc-link"><span class="toc-num">07</span>Privacy Laws</a>
+    <a href="#protect-privacy" class="toc-link"><span class="toc-num">08</span>Protect Yourself</a>
+    <a href="#conclusion" class="toc-link"><span class="toc-num">09</span>Conclusion</a>
+    <a href="#quiz" class="toc-link"><span class="toc-num">10</span>🧠 Quiz</a>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<main>
+
+<!-- HERO -->
+<section id="home">
+  <div class="hero">
+    <div class="hero-bg-art"></div>
+    <div class="hero-badge">🎓 Djillali Liabes University of Sidi Bel Abbes</div>
+    <h1>Cookies &<br><span class="highlight">Online</span> <span class="highlight2">Tracking</span></h1>
+    <p class="hero-sub">How websites follow you across the internet — and what you can do to take back your privacy. Click anything to explore it.</p>
+    <div class="hero-btns">
+      <a href="#what-is-cookie" class="btn btn-primary">🚀 Start Learning</a>
+      <a href="#demo" class="btn btn-ghost">🎮 Try Demo</a>
+    </div>
+    <div class="hero-stats">
+      <div class="hero-stat"><div class="num">5,000+</div><div class="lbl">Trackers online</div></div>
+      <div class="hero-stat"><div class="num">79%</div><div class="lbl">Users tracked</div></div>
+      <div class="hero-stat"><div class="num">$500B</div><div class="lbl">Data economy</div></div>
+      <div class="hero-stat"><div class="num">3rd</div><div class="lbl">Party cookies</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- SECTION 01: WHAT IS A COOKIE -->
+<section id="what-is-cookie" class="reveal">
+  <div class="sec-header">
+    <span class="sec-num">01</span>
+    <h2>What is a Cookie?</h2>
+  </div>
+  <p>An <strong>HTTP cookie</strong> is a tiny piece of data a website stores in your browser. Think of it as a <em>loyalty card</em> — every time you come back, the site recognizes you by reading that card.</p>
+
+  <div class="card-grid">
+    <div class="card card-accent" style="cursor:pointer" onclick="this.querySelector('.extra').style.display=this.querySelector('.extra').style.display==='none'?'block':'none'">
+      <div class="card-title">🏪 Loyalty Card Analogy</div>
+      <p style="font-size:.85rem;margin:0">Like a coffee shop stamp card — the server gives you a token, you bring it back next visit.</p>
+      <div class="extra" style="display:none;margin-top:.75rem;font-size:.82rem;color:var(--text3);padding:.75rem;background:var(--bg2);border-radius:8px">Without cookies, every page visit is a fresh start — the server has no memory of you. Cookies solve the "statelessness" problem of HTTP.</div>
+    </div>
+    <div class="card card-info" style="cursor:pointer" onclick="this.querySelector('.extra').style.display=this.querySelector('.extra').style.display==='none'?'block':'none'">
+      <div class="card-title">🛂 Visitor Badge Analogy</div>
+      <p style="font-size:.85rem;margin:0">Like a badge at a conference — you get it at the door and show it at every station.</p>
+      <div class="extra" style="display:none;margin-top:.75rem;font-size:.82rem;color:var(--text3);padding:.75rem;background:var(--bg2);border-radius:8px">The badge (cookie) proves who you are without you having to re-register at every room. But what if someone steals your badge?</div>
+    </div>
+  </div>
+
+  <h3>🔬 Cookie Anatomy — Click any field to learn more</h3>
+  <div class="cookie-anatomy">
+    <div class="ca-row" onclick="toggleCA(this)">
+      <div class="ca-key">Name</div>
+      <div class="ca-eq">=</div>
+      <div class="ca-val">sessionID</div>
+      <div class="ca-desc">Unique identifier key</div>
+    </div>
+    <div class="ca-tooltip">📌 The <strong>name</strong> is how the server identifies which cookie to read. Like the label on a jar. Common names: <code>session_id</code>, <code>user_token</code>, <code>_ga</code> (Google Analytics), <code>fbp</code> (Facebook Pixel).</div>
+
+    <div class="ca-row" onclick="toggleCA(this)">
+      <div class="ca-key">Value</div>
+      <div class="ca-eq">=</div>
+      <div class="ca-val">a4f8c2e91b...</div>
+      <div class="ca-desc">The actual stored data</div>
+    </div>
+    <div class="ca-tooltip">🔐 The <strong>value</strong> is the actual data. Often a random token or encoded user ID. This is what gets sent back to the server with every request.</div>
+
+    <div class="ca-row" onclick="toggleCA(this)">
+      <div class="ca-key">Domain</div>
+      <div class="ca-eq">=</div>
+      <div class="ca-val">.example.com</div>
+      <div class="ca-desc">Which domain owns it</div>
+    </div>
+    <div class="ca-tooltip">🌐 The <strong>domain</strong> controls which server receives the cookie. A leading dot (e.g. <code>.example.com</code>) means ALL subdomains. Third-party cookies have a different domain than the page you're on!</div>
+
+    <div class="ca-row" onclick="toggleCA(this)">
+      <div class="ca-key">Path</div>
+      <div class="ca-eq">=</div>
+      <div class="ca-val">/</div>
+      <div class="ca-desc">URL scope for the cookie</div>
+    </div>
+    <div class="ca-tooltip">📁 The <strong>path</strong> restricts the cookie to certain URLs. <code>/</code> means the whole site. <code>/cart</code> means only cart pages get the cookie.</div>
+
+    <div class="ca-row" onclick="toggleCA(this)">
+      <div class="ca-key">Expires</div>
+      <div class="ca-eq">=</div>
+      <div class="ca-val">2025-12-31T00:00Z</div>
+      <div class="ca-desc">When it gets deleted</div>
+    </div>
+    <div class="ca-tooltip">⏰ <strong>Expiry</strong> determines the cookie's lifespan. No expiry = session cookie (deleted when browser closes). Long expiry = persistent cookie that survives reboots. Some trackers set expiry years into the future!</div>
+
+    <div class="ca-row" onclick="toggleCA(this)">
+      <div class="ca-key">Flags</div>
+      <div class="ca-eq">=</div>
+      <div class="ca-val">Secure; HttpOnly; SameSite=Lax</div>
+      <div class="ca-desc">Security attributes</div>
+    </div>
+    <div class="ca-tooltip">🛡️ <strong>Flags</strong> add security rules:<br>• <code>Secure</code> → only send over HTTPS<br>• <code>HttpOnly</code> → JavaScript cannot read this cookie (XSS protection)<br>• <code>SameSite=Strict/Lax/None</code> → controls cross-site behavior (CSRF protection)</div>
+  </div>
+
+  <h3>💻 Real Cookie Example</h3>
+  <div class="code-wrap">
+    <div class="code-bar">
+      <div class="code-dots"><div class="code-dot dot-r"></div><div class="code-dot dot-y"></div><div class="code-dot dot-g"></div></div>
+      <span class="code-lang">HTTP Response Header</span>
+      <button class="copy-btn" onclick="copyCode(this)">📋 Copy</button>
+    </div>
+    <pre><code><span class="t-cm"># Server sends this when you log in:</span>
+<span class="t-prop">Set-Cookie:</span> <span class="t-str">sessionID=a4f8c2e91b3d7f6a; </span>
+           <span class="t-kw">Domain=</span><span class="t-str">.mysite.com; </span>
+           <span class="t-kw">Path=</span><span class="t-str">/; </span>
+           <span class="t-kw">Expires=</span><span class="t-str">Wed, 31 Dec 2025 23:59:59 GMT; </span>
+           <span class="t-kw">Secure; HttpOnly; SameSite=</span><span class="t-str">Lax</span>
+
+<span class="t-cm"># Your browser sends this cookie with EVERY request to mysite.com:</span>
+<span class="t-prop">GET /profile HTTP/1.1</span>
+<span class="t-kw">Host:</span> <span class="t-str">mysite.com</span>
+<span class="t-kw">Cookie:</span> <span class="t-str">sessionID=a4f8c2e91b3d7f6a</span></code></pre>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- SECTION 02: TYPES OF COOKIES -->
+<section id="cookie-types" class="reveal">
+  <div class="sec-header">
+    <span class="sec-num">02</span>
+    <h2>Types of Cookies</h2>
+  </div>
+  <p>Not all cookies are the same. Understanding the types helps you understand <strong>which ones protect you</strong> and which ones <strong>track you</strong>. Click each type to explore!</p>
+
+  <div class="expand-grid">
+    <div class="expand-node" onclick="toggleNode('session')">
+      <span class="en-icon">⏳</span>
+      <div class="en-title">Session</div>
+      <div class="en-sub">Temporary</div>
+      <div class="en-pulse"></div>
+    </div>
+    <div class="expand-node" onclick="toggleNode('persistent')">
+      <span class="en-icon">💾</span>
+      <div class="en-title">Persistent</div>
+      <div class="en-sub">Long-lived</div>
+      <div class="en-pulse"></div>
+    </div>
+    <div class="expand-node" onclick="toggleNode('firstparty')">
+      <span class="en-icon">🏠</span>
+      <div class="en-title">First-Party</div>
+      <div class="en-sub">Your site</div>
+      <div class="en-pulse"></div>
+    </div>
+    <div class="expand-node" onclick="toggleNode('thirdparty')">
+      <span class="en-icon">👁️</span>
+      <div class="en-title">Third-Party</div>
+      <div class="en-sub">Other sites</div>
+      <div class="en-pulse"></div>
+    </div>
+    <div class="expand-node" onclick="toggleNode('secure')">
+      <span class="en-icon">🔒</span>
+      <div class="en-title">Secure</div>
+      <div class="en-sub">HTTPS only</div>
+      <div class="en-pulse"></div>
+    </div>
+    <div class="expand-node" onclick="toggleNode('httponly')">
+      <span class="en-icon">🚫</span>
+      <div class="en-title">HttpOnly</div>
+      <div class="en-sub">No JS access</div>
+      <div class="en-pulse"></div>
+    </div>
+  </div>
+
+  <div id="panel-session" class="expand-panel">
+    <div class="expand-panel-title">⏳ Session Cookies</div>
+    <p style="font-size:.9rem">Deleted automatically when you close your browser tab or window. They live in memory, not on disk. Used for: shopping cart contents, login state during a single visit.</p>
+    <div class="callout callout-ok"><div class="callout-icon">✅</div><div class="callout-body"><strong>Privacy friendly:</strong> No trace left after browsing. Great for temporary states.</div></div>
+  </div>
+
+  <div id="panel-persistent" class="expand-panel">
+    <div class="expand-panel-title">💾 Persistent Cookies</div>
+    <p style="font-size:.9rem">Survive browser restarts. Stored on your disk until the expiry date or manually deleted. Used for: "Remember Me" login, preferences, and most tracking.</p>
+    <div class="callout callout-warn"><div class="callout-icon">⚠️</div><div class="callout-body"><strong>Watch out:</strong> Trackers set expiry years in the future. Some cookies set in 2020 may still be on your device!</div></div>
+    <div class="code-wrap" style="margin-top:.75rem">
+      <div class="code-bar"><div class="code-dots"><div class="code-dot dot-r"></div><div class="code-dot dot-y"></div><div class="code-dot dot-g"></div></div><span class="code-lang">Cookie</span><button class="copy-btn" onclick="copyCode(this)">📋 Copy</button></div>
+      <pre><code><span class="t-cm"># Expires 2 years from now = persistent tracker</span>
+<span class="t-prop">Set-Cookie:</span> <span class="t-str">_track=uid_99182; Expires=Fri, 01 Jan 2027 00:00:00 GMT</span></code></pre>
+    </div>
+  </div>
+
+  <div id="panel-firstparty" class="expand-panel">
+    <div class="expand-panel-title">🏠 First-Party Cookies</div>
+    <p style="font-size:.9rem">Set by the website you're visiting (same domain). Essential for features like login, cart, and preferences. Generally considered legitimate and necessary.</p>
+    <div class="callout callout-info"><div class="callout-icon">ℹ️</div><div class="callout-body">Even first-party analytics can be invasive. A site may send your data to Google Analytics — that's still tracking you.</div></div>
+  </div>
+
+  <div id="panel-thirdparty" class="expand-panel">
+    <div class="expand-panel-title">👁️ Third-Party Cookies</div>
+    <p style="font-size:.9rem">Set by a different domain than the one you're on. A tracker embedded on 10,000 sites can <strong>follow your journey across all of them</strong>. This is the backbone of online advertising.</p>
+    <div class="callout callout-danger"><div class="callout-icon">⚠️</div><div class="callout-body"><strong>The big privacy threat.</strong> Chrome is phasing them out. Firefox and Safari already block them by default.</div></div>
+  </div>
+
+  <div id="panel-secure" class="expand-panel">
+    <div class="expand-panel-title">🔒 Secure Cookies</div>
+    <p style="font-size:.9rem">Only transmitted over encrypted HTTPS connections. Prevents cookies from being intercepted on public WiFi (man-in-the-middle attacks).</p>
+    <div class="code-wrap" style="margin-top:.75rem">
+      <div class="code-bar"><div class="code-dots"><div class="code-dot dot-r"></div><div class="code-dot dot-y"></div><div class="code-dot dot-g"></div></div><span class="code-lang">Cookie Flag</span><button class="copy-btn" onclick="copyCode(this)">📋 Copy</button></div>
+      <pre><code><span class="t-prop">Set-Cookie:</span> <span class="t-str">token=xyz; </span><span class="t-kw">Secure</span>
+<span class="t-cm"># Only sent over https:// — never http://</span></code></pre>
+    </div>
+  </div>
+
+  <div id="panel-httponly" class="expand-panel">
+    <div class="expand-panel-title">🚫 HttpOnly Cookies</div>
+    <p style="font-size:.9rem">JavaScript cannot read these cookies. Protects against <strong>XSS attacks</strong> where malicious scripts try to steal your session cookie.</p>
+    <div class="code-wrap" style="margin-top:.75rem">
+      <div class="code-bar"><div class="code-dots"><div class="code-dot dot-r"></div><div class="code-dot dot-y"></div><div class="code-dot dot-g"></div></div><span class="code-lang">JavaScript Test</span><button class="copy-btn" onclick="copyCode(this)">📋 Copy</button></div>
+      <pre><code><span class="t-cm">// Try to steal the cookie with JS:</span>
+<span class="t-fn">console</span>.<span class="t-fn">log</span>(document.<span class="t-prop">cookie</span>)
+<span class="t-cm">// Result: "" — empty! HttpOnly hides it from JS</span>
+<span class="t-cm">// Without HttpOnly: "sessionID=a4f8c2e91b..." — STOLEN!</span></code></pre>
+    </div>
+  </div>
+
+  <h3>📊 Comparison Table</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Type</th><th>Survives Close?</th><th>Who Sets It</th><th>Privacy Risk</th><th>Common Use</th></tr></thead>
+      <tbody>
+        <tr><td>Session</td><td><span class="pill pill-r">✗ No</span></td><td>Your site</td><td><span class="pill pill-g">Low</span></td><td>Shopping cart, login</td></tr>
+        <tr><td>Persistent</td><td><span class="pill pill-g">✓ Yes</span></td><td>Any site</td><td><span class="pill pill-a">Medium</span></td><td>Remember Me, prefs</td></tr>
+        <tr><td>First-Party</td><td>Depends</td><td>Same domain</td><td><span class="pill pill-g">Low</span></td><td>Core functionality</td></tr>
+        <tr><td>Third-Party</td><td>Usually yes</td><td>Other domain</td><td><span class="pill pill-r">High</span></td><td>Ads, tracking</td></tr>
+        <tr><td>Secure</td><td>Depends</td><td>Any</td><td><span class="pill pill-g">Safer</span></td><td>Auth tokens</td></tr>
+        <tr><td>HttpOnly</td><td>Depends</td><td>Any</td><td><span class="pill pill-g">Safer</span></td><td>Session security</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- SECTION 03: HOW TRACKING WORKS -->
+<section id="how-tracking-works" class="reveal">
+  <div class="sec-header">
+    <span class="sec-num">03</span>
+    <h2>How Online Tracking Works</h2>
+  </div>
+  <p>Click each step of the journey to see exactly what happens behind the scenes when you browse the web.</p>
+
+  <div class="journey">
+    <div class="journey-steps">
+      <div class="jstep" onclick="toggleJstep(this)">
+        <div class="jstep-icon">🌐</div>
+        <div>
+          <div class="jstep-title">1. You Visit a Website</div>
+          <div class="jstep-desc">Your browser sends a GET request. The server sees your IP, browser, OS, timezone...</div>
+          <div class="jstep-expand">GET / HTTP/1.1&#10;Host: news-site.com&#10;User-Agent: Mozilla/5.0 (iPhone; CPU iPhone OS 17_0)&#10;Accept-Language: en-US&#10;&#10;# Server already knows: iPhone user, US, English, iOS 17</div>
+        </div>
+      </div>
+      <div class="jstep" onclick="toggleJstep(this)">
+        <div class="jstep-icon">🍪</div>
+        <div>
+          <div class="jstep-title">2. Trackers Drop Their Cookies</div>
+          <div class="jstep-desc">The site loads 3rd-party ads, widgets, analytics. Each one sets their own cookie.</div>
+          <div class="jstep-expand">Set-Cookie: _ga=GA1.2.1234567890; Domain=.google-analytics.com; Expires=2026-01-01&#10;Set-Cookie: _fbp=fb.1.12345.678; Domain=.facebook.com; Expires=2026-01-01&#10;Set-Cookie: uid=ad-tracker-99182; Domain=.doubleclick.net&#10;&#10;# 3 trackers from 1 page visit!</div>
+        </div>
+      </div>
+      <div class="jstep" onclick="toggleJstep(this)">
+        <div class="jstep-icon">🛍️</div>
+        <div>
+          <div class="jstep-title">3. You Browse Other Sites</div>
+          <div class="jstep-desc">You visit a shopping site, a news site, a forum. Each loads the same trackers.</div>
+          <div class="jstep-expand"># Same tracker cookie sent from shopping.com to doubleclick.net:&#10;Cookie: uid=ad-tracker-99182&#10;&#10;# Tracker now knows:&#10;# - You visited: news.com, shopping.com, forum.com&#10;# - At 8pm on a Tuesday&#10;# - From New York&#10;# - On an iPhone</div>
+        </div>
+      </div>
+      <div class="jstep" onclick="toggleJstep(this)">
+        <div class="jstep-icon">🎯</div>
+        <div>
+          <div class="jstep-title">4. Your Profile is Built</div>
+          <div class="jstep-desc">The tracker aggregates all visits into a behavioral profile sold to advertisers.</div>
+          <div class="jstep-expand">{&#10;  "uid": "ad-tracker-99182",&#10;  "interests": ["technology", "shoes", "sports"],&#10;  "income_estimate": "high",&#10;  "location": "New York",&#10;  "device": "iPhone",&#10;  "active_hours": "evening",&#10;  "profile_completeness": "87%"&#10;}</div>
+        </div>
+      </div>
+      <div class="jstep" onclick="toggleJstep(this)">
+        <div class="jstep-icon">📢</div>
+        <div>
+          <div class="jstep-title">5. Targeted Ads Follow You</div>
+          <div class="jstep-desc">That shoe you looked at appears everywhere. This is behavioral retargeting.</div>
+          <div class="jstep-expand"># Real-time bidding happens in &lt;100ms:&#10;# 1. You load a page with ad slot&#10;# 2. Ad exchange auctions your profile&#10;# 3. Nike bids $0.0023 for your eyeballs&#10;# 4. Nike's shoe ad wins and loads&#10;# ALL before the page finishes loading!</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <h3>🔍 What is a Tracking Pixel?</h3>
+  <div class="card card-danger">
+    <p>A tracking pixel is a <strong>1×1 invisible image</strong> embedded in emails and web pages. When your browser loads it, it pings the tracker's server — confirming you opened the email.</p>
+  </div>
+  <div class="code-wrap">
+    <div class="code-bar"><div class="code-dots"><div class="code-dot dot-r"></div><div class="code-dot dot-y"></div><div class="code-dot dot-g"></div></div><span class="code-lang">HTML — Tracking Pixel</span><button class="copy-btn" onclick="copyCode(this)">📋 Copy</button></div>
+    <pre><code><span class="t-cm">&lt;!-- Hidden in an email HTML — totally invisible --&gt;</span>
+<span class="t-kw">&lt;img </span>
+  <span class="t-prop">src=</span><span class="t-str">"https://tracker.com/pixel.gif?uid=99182&email=you@gmail.com"</span>
+  <span class="t-prop">width=</span><span class="t-str">"1"</span> <span class="t-prop">height=</span><span class="t-str">"1"</span>
+  <span class="t-prop">style=</span><span class="t-str">"display:none"</span>
+<span class="t-kw">/&gt;</span>
+
+<span class="t-cm">&lt;!-- When you open the email, your IP + timestamp logged --&gt;</span>
+<span class="t-cm">&lt;!-- Tracker now knows: opened at 8:03pm, New York IP --&gt;</span></code></pre>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- SECTION 04: BEYOND COOKIES -->
+<section id="beyond-cookies" class="reveal">
+  <div class="sec-header">
+    <span class="sec-num">04</span>
+    <h2>Tracking Beyond Cookies</h2>
+  </div>
+  <p>Modern trackers don't rely solely on cookies. Click each technology to understand how it works.</p>
+
+  <div class="expand-grid" style="grid-template-columns:repeat(auto-fit,minmax(140px,1fr))">
+    <div class="expand-node" onclick="toggleNode('fp')">
+      <span class="en-icon">🖐️</span>
+      <div class="en-title">Fingerprinting</div>
+      <div class="en-sub">No cookies needed</div>
+      <div class="en-pulse" style="background:var(--accent3)"></div>
+    </div>
+    <div class="expand-node" onclick="toggleNode('ls')">
+      <span class="en-icon">🗄️</span>
+      <div class="en-title">Local Storage</div>
+      <div class="en-sub">Never expires</div>
+      <div class="en-pulse" style="background:var(--warn)"></div>
+    </div>
+    <div class="expand-node" onclick="toggleNode('px')">
+      <span class="en-icon">🔬</span>
+      <div class="en-title">Tracking Pixel</div>
+      <div class="en-sub">Invisible 1×1</div>
+      <div class="en-pulse" style="background:var(--danger)"></div>
+    </div>
+    <div class="expand-node" onclick="toggleNode('sc')">
+      <span class="en-icon">🧟</span>
+      <div class="en-title">Supercookies</div>
+      <div class="en-sub">Zombie cookies</div>
+      <div class="en-pulse" style="background:var(--accent4)"></div>
+    </div>
+  </div>
+
+  <div id="panel-fp" class="expand-panel">
+    <div class="expand-panel-title">🖐️ Browser Fingerprinting</div>
+    <p style="font-size:.9rem">By combining dozens of browser attributes, sites create a unique "fingerprint" that identifies you — <strong>even without any cookies</strong>. It's like identifying someone by their voice rather than their ID card.</p>
+    <div class="code-wrap">
+      <div class="code-bar"><div class="code-dots"><div class="code-dot dot-r"></div><div class="code-dot dot-y"></div><div class="code-dot dot-g"></div></div><span class="code-lang">JavaScript — Fingerprint Collection</span><button class="copy-btn" onclick="copyCode(this)">📋 Copy</button></div>
+      <pre><code><span class="t-cm">// Trackers collect all this from your browser:</span>
+<span class="t-kw">const</span> <span class="t-fn">fingerprint</span> = {
+  userAgent: <span class="t-fn">navigator</span>.<span class="t-prop">userAgent</span>,     <span class="t-cm">// Browser + OS version</span>
+  language:  <span class="t-fn">navigator</span>.<span class="t-prop">language</span>,       <span class="t-cm">// "en-US"</span>
+  timezone:  <span class="t-fn">Intl</span>.<span class="t-fn">DateTimeFormat</span>().<span class="t-fn">resolvedOptions</span>().<span class="t-prop">timeZone</span>,
+  screen:    `${screen.<span class="t-prop">width</span>}x${screen.<span class="t-prop">height</span>}`,
+  plugins:   [...<span class="t-fn">navigator</span>.<span class="t-prop">plugins</span>].<span class="t-fn">map</span>(p => p.<span class="t-prop">name</span>),
+  fonts:     <span class="t-cm">// detect via canvas/CSS tricks</span>
+  canvas:    <span class="t-cm">// pixel-level rendering differences</span>
+  webgl:     <span class="t-cm">// GPU signature</span>
+}
+<span class="t-cm">// Hash all of it → unique ID for YOUR device</span></code></pre>
+    </div>
+    <div class="callout callout-danger"><div class="callout-icon">🚨</div><div class="callout-body"><strong>Incognito mode doesn't help.</strong> Your fingerprint is the same in private mode. This is why fingerprinting is considered more invasive than cookies.</div></div>
+  </div>
+
+  <div id="panel-ls" class="expand-panel">
+    <div class="expand-panel-title">🗄️ Local Storage / Session Storage</div>
+    <p style="font-size:.9rem">Web Storage APIs allow sites to store much more data than cookies — and localStorage <strong>never expires</strong>. Unlike cookies, they're not automatically sent to the server, but JavaScript can read and use them for tracking.</p>
+    <div class="code-wrap">
+      <div class="code-bar"><div class="code-dots"><div class="code-dot dot-r"></div><div class="code-dot dot-y"></div><div class="code-dot dot-g"></div></div><span class="code-lang">JavaScript</span><button class="copy-btn" onclick="copyCode(this)">📋 Copy</button></div>
+      <pre><code><span class="t-cm">// localStorage: persists until manually cleared</span>
+<span class="t-fn">localStorage</span>.<span class="t-fn">setItem</span>(<span class="t-str">'trackingID'</span>, <span class="t-str">'uid-99182-permanent'</span>)
+
+<span class="t-cm">// sessionStorage: cleared when tab closes</span>
+<span class="t-fn">sessionStorage</span>.<span class="t-fn">setItem</span>(<span class="t-str">'visit'</span>, <span class="t-str">'1'</span>)
+
+<span class="t-cm">// localStorage has 5-10MB limit vs 4KB for cookies</span>
+<span class="t-cm">// Can store full behavioral history offline!</span></code></pre>
+    </div>
+  </div>
+
+  <div id="panel-px" class="expand-panel">
+    <div class="expand-panel-title">🔬 Tracking Pixels in Email</div>
+    <p style="font-size:.9rem">Marketing emails embed invisible 1×1 images. When your email client loads the image, it logs: your IP address, email client, device, exact open time — all without your knowledge or consent.</p>
+    <div class="callout callout-warn"><div class="callout-icon">📧</div><div class="callout-body"><strong>To protect yourself:</strong> Disable "Load Remote Images" in your email client. Gmail and Apple Mail now pre-load images through their own proxy to mask your IP.</div></div>
+  </div>
+
+  <div id="panel-sc" class="expand-panel">
+    <div class="expand-panel-title">🧟 Supercookies / Evercookies</div>
+    <p style="font-size:.9rem">Evercookies store tracking data in <em>multiple locations simultaneously</em>. Even if you delete cookies, the script recreates them from the surviving copies. True zombie behavior.</p>
+    <div class="code-wrap">
+      <div class="code-bar"><div class="code-dots"><div class="code-dot dot-r"></div><div class="code-dot dot-y"></div><div class="code-dot dot-g"></div></div><span class="code-lang">Storage Locations Used</span><button class="copy-btn" onclick="copyCode(this)">📋 Copy</button></div>
+      <pre><code><span class="t-cm">// An evercookie stores your ID in ALL of these:</span>
+[
+  <span class="t-str">"HTTP Cookies"</span>,       <span class="t-cm">// Standard cookies</span>
+  <span class="t-str">"localStorage"</span>,        <span class="t-cm">// Web storage</span>
+  <span class="t-str">"IndexedDB"</span>,           <span class="t-cm">// Browser database</span>
+  <span class="t-str">"Cache API"</span>,           <span class="t-cm">// Service worker cache</span>
+  <span class="t-str">"ETag Headers"</span>,        <span class="t-cm">// HTTP caching mechanism</span>
+  <span class="t-str">"HSTS Supercookie"</span>,    <span class="t-cm">// HTTPS preloading exploit</span>
+  <span class="t-str">"Canvas Fingerprint"</span>  <span class="t-cm">// No storage needed!</span>
+]
+<span class="t-cm">// Delete ANY of them → restored from the rest</span></code></pre>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- SECTION 05: WHO TRACKS YOU -->
+<section id="who-tracks" class="reveal">
+  <div class="sec-header">
+    <span class="sec-num">05</span>
+    <h2>Who Is Tracking You & Why?</h2>
+  </div>
+  <p>The tracking ecosystem is a massive industry. Click each actor to understand their role and methods.</p>
+
+  <div class="tracker-ecosystem">
+    <div class="tracker-card" onclick="toggleNode('adv')">
+      <div class="tc-danger"></div>
+      <div class="tc-icon">📢</div>
+      <div class="tc-name">Advertisers</div>
+      <div class="tc-type">Behavioral targeting</div>
+    </div>
+    <div class="tracker-card" onclick="toggleNode('ana')">
+      <div class="tc-danger" style="background:var(--info)"></div>
+      <div class="tc-icon">📊</div>
+      <div class="tc-name">Analytics</div>
+      <div class="tc-type">Google Analytics</div>
+    </div>
+    <div class="tracker-card" onclick="toggleNode('social')">
+      <div class="tc-danger" style="background:var(--accent4)"></div>
+      <div class="tc-icon">👍</div>
+      <div class="tc-name">Social Media</div>
+      <div class="tc-type">Facebook Pixel</div>
+    </div>
+    <div class="tracker-card" onclick="toggleNode('broker')">
+      <div class="tc-danger" style="background:var(--warn)"></div>
+      <div class="tc-icon">🏦</div>
+      <div class="tc-name">Data Brokers</div>
+      <div class="tc-type">Sell your profile</div>
+    </div>
+  </div>
+
+  <div id="panel-adv" class="expand-panel">
+    <div class="expand-panel-title">📢 Advertisers & Ad Networks</div>
+    <p style="font-size:.9rem">Ad networks like Google Ads and DoubleClick are embedded on millions of websites. They track which sites you visit, what you search, what you buy — then sell ad slots targeted to <em>you specifically</em> via real-time bidding in under 100ms.</p>
+    <div class="callout callout-info"><div class="callout-icon">💡</div><div class="callout-body">Google's ad network reaches over <strong>35 million websites</strong>. If you visit any of them, Google may track you — even if you never visit google.com.</div></div>
+  </div>
+
+  <div id="panel-ana" class="expand-panel">
+    <div class="expand-panel-title">📊 Analytics Platforms</div>
+    <p style="font-size:.9rem">Google Analytics (GA) is on ~56% of all websites. While its stated purpose is helping site owners understand traffic, it also sends behavioral data back to Google. A more privacy-friendly alternative: <strong>Plausible.io</strong> or <strong>Matomo</strong>.</p>
+    <div class="code-wrap">
+      <div class="code-bar"><div class="code-dots"><div class="code-dot dot-r"></div><div class="code-dot dot-y"></div><div class="code-dot dot-g"></div></div><span class="code-lang">GA Cookie</span><button class="copy-btn" onclick="copyCode(this)">📋 Copy</button></div>
+      <pre><code><span class="t-cm"># Google Analytics sets this on almost every site:</span>
+<span class="t-prop">_ga</span>=<span class="t-str">GA1.2.1234567890.1680000000</span>
+<span class="t-cm"># Unique client ID — tracks you across all GA sites</span>
+<span class="t-cm"># Expires: 2 years</span></code></pre>
+    </div>
+  </div>
+
+  <div id="panel-social" class="expand-panel">
+    <div class="expand-panel-title">👍 Social Media Trackers</div>
+    <p style="font-size:.9rem">The <strong>Facebook Pixel</strong> is embedded on millions of e-commerce sites. It tracks what you view and buy — even if you're logged out of Facebook. This data feeds Meta's ad targeting system and is sent back to Meta's servers.</p>
+    <div class="callout callout-danger"><div class="callout-icon">🚨</div><div class="callout-body">In 2022, the FTC found hospitals sharing sensitive patient data with Meta via the Facebook Pixel — including health conditions and appointment details.</div></div>
+  </div>
+
+  <div id="panel-broker" class="expand-panel">
+    <div class="expand-panel-title">🏦 Data Brokers</div>
+    <p style="font-size:.9rem">Companies like Acxiom, Experian, and LexisNexis collect data from thousands of sources — websites, public records, purchase histories, app usage — and sell detailed profiles to anyone willing to pay. Your profile may include income estimates, political views, and health predictions.</p>
+    <div class="callout callout-warn"><div class="callout-icon">📋</div><div class="callout-body">Under GDPR and CCPA you have the right to request and delete your data. Sites like <strong>DeleteMe</strong> automate opt-out requests to hundreds of brokers.</div></div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- SECTION 06: DEMO -->
+<section id="demo" class="reveal">
+  <div class="sec-header">
+    <span class="sec-num">06</span>
+    <h2>🎮 Live Interactive Demo</h2>
+  </div>
+  <p>Experience tracking in action. Click the buttons below to simulate what happens behind the scenes when you browse.</p>
+
+  <div class="terminal">
+    <div class="terminal-bar">
+      <div class="code-dots"><div class="code-dot dot-r"></div><div class="code-dot dot-y"></div><div class="code-dot dot-g"></div></div>
+      <div class="terminal-title">🍪 Cookie Simulator v1.0 — Browser Console</div>
+    </div>
+    <div id="termOutput">
+      <span class="t-line t-cm">// Welcome! Use the buttons below to simulate cookie tracking.</span>
+      <span class="t-line t-cm">// Watch what happens at the browser level.</span>
+      <span class="t-line t-cm">// ─────────────────────────────────────────────────</span>
+    </div>
+  </div>
+
+  <div class="demo-btns">
+    <button class="demo-btn db-blue" onclick="demoVisit()">🌐 Visit Website</button>
+    <button class="demo-btn db-green" onclick="demoReturn()">🔄 Return to Site</button>
+    <button class="demo-btn db-red" onclick="demoClear()">🗑️ Clear Cookies</button>
+    <button class="demo-btn db-amber" onclick="demoBlock()">🛡️ Enable Blocker</button>
+  </div>
+
+  <div id="cookieInspector">
+    <div class="ci-title">
+      <span>🔍</span> Cookie Inspector — Stored in your browser
+    </div>
+    <div id="ciRows"></div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- SECTION 07: PRIVACY LAWS -->
+<section id="privacy-laws" class="reveal">
+  <div class="sec-header">
+    <span class="sec-num">07</span>
+    <h2>Privacy Laws & Regulations</h2>
+  </div>
+  <p>Governments have responded to the tracking crisis with legislation. Click each law to explore what it means for you.</p>
+
+  <div class="law-card" onclick="this.classList.toggle('open')">
+    <div class="law-badge gdpr">🇪🇺 GDPR — General Data Protection Regulation</div>
+    <p style="font-size:.9rem;margin:0;color:var(--text2)">Europe's landmark privacy law — the gold standard worldwide. Click to expand.</p>
+    <div class="law-details">
+      <div style="height:.75rem"></div>
+      <div class="card-grid" style="margin:0">
+        <div class="callout callout-info"><div class="callout-icon">📅</div><div class="callout-body"><strong>In effect:</strong> May 25, 2018</div></div>
+        <div class="callout callout-info"><div class="callout-icon">🌍</div><div class="callout-body"><strong>Scope:</strong> Any site serving EU users</div></div>
+        <div class="callout callout-info"><div class="callout-icon">💰</div><div class="callout-body"><strong>Fine:</strong> Up to €20M or 4% global revenue</div></div>
+      </div>
+      <h3 style="margin-top:1rem">Your Rights Under GDPR:</h3>
+      <ul style="color:var(--text2);font-size:.88rem;padding-left:1.25rem;line-height:2">
+        <li>Right to access your data</li>
+        <li>Right to be forgotten (erasure)</li>
+        <li>Right to data portability</li>
+        <li>Right to object to processing</li>
+        <li>Explicit consent required before tracking</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="law-card" onclick="this.classList.toggle('open')">
+    <div class="law-badge ccpa">🇺🇸 CCPA — California Consumer Privacy Act</div>
+    <p style="font-size:.9rem;margin:0;color:var(--text2)">California's privacy law, similar to GDPR but with US flavor. Click to expand.</p>
+    <div class="law-details">
+      <div style="height:.75rem"></div>
+      <div class="card-grid" style="margin:0">
+        <div class="callout callout-warn"><div class="callout-icon">📅</div><div class="callout-body"><strong>In effect:</strong> January 1, 2020</div></div>
+        <div class="callout callout-warn"><div class="callout-icon">🏢</div><div class="callout-body"><strong>Scope:</strong> CA residents + companies $25M+ revenue</div></div>
+        <div class="callout callout-warn"><div class="callout-icon">💰</div><div class="callout-body"><strong>Fine:</strong> $2,500–$7,500 per violation</div></div>
+      </div>
+      <h3 style="margin-top:1rem">Key Rights:</h3>
+      <ul style="color:var(--text2);font-size:.88rem;padding-left:1.25rem;line-height:2">
+        <li>Know what data is collected</li>
+        <li>Opt-out of data sales ("Do Not Sell My Info")</li>
+        <li>Delete personal data on request</li>
+        <li>Non-discrimination for exercising rights</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="law-card" onclick="this.classList.toggle('open')">
+    <div class="law-badge lg">🍪 Cookie Consent Banners — Why Do They Exist?</div>
+    <p style="font-size:.9rem;margin:0;color:var(--text2)">GDPR requires informed, explicit consent before setting non-essential cookies. That's why every site has a banner. Click to learn what your choices actually mean.</p>
+    <div class="law-details">
+      <div style="height:.75rem"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem">
+        <div class="callout callout-danger"><div class="callout-icon">⚠️</div><div class="callout-body"><strong>"Accept All":</strong> You consent to ALL tracking — advertising, analytics, social media pixels, and data sharing with hundreds of third parties.</div></div>
+        <div class="callout callout-ok"><div class="callout-icon">✅</div><div class="callout-body"><strong>"Reject Non-Essential":</strong> Only strictly necessary cookies (login, cart) are allowed. All tracking blocked. Usually the better choice.</div></div>
+      </div>
+      <div class="callout callout-warn" style="margin-top:.75rem"><div class="callout-icon">🎨</div><div class="callout-body"><strong>Dark Patterns:</strong> Many sites design the "Reject" button to be small, hidden, or require multiple clicks — while "Accept All" is bright and prominent. This is called a "dark pattern" and is illegal under GDPR.</div></div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- SECTION 08: PROTECT YOUR PRIVACY -->
+<section id="protect-privacy" class="reveal">
+  <div class="sec-header">
+    <span class="sec-num">08</span>
+    <h2>How to Protect Your Privacy</h2>
+  </div>
+  <p>Click each practice to mark it as done — build your privacy checklist!</p>
+
+  <div id="privacyChecklist">
+    <div class="bp-item" onclick="toggleBP(this)">
+      <div class="bp-check">🔒</div>
+      <div>
+        <div class="bp-label">Always use HTTPS sites</div>
+        <div class="bp-desc">Look for the padlock icon. HTTPS encrypts your traffic and prevents cookie theft on public WiFi.</div>
+      </div>
+    </div>
+    <div class="bp-item" onclick="toggleBP(this)">
+      <div class="bp-check">🦊</div>
+      <div>
+        <div class="bp-label">Use Firefox or Brave browser</div>
+        <div class="bp-desc">Both block third-party cookies and fingerprinting by default. Brave also blocks ads automatically.</div>
+      </div>
+    </div>
+    <div class="bp-item" onclick="toggleBP(this)">
+      <div class="bp-check">🧩</div>
+      <div>
+        <div class="bp-label">Install uBlock Origin extension</div>
+        <div class="bp-desc">The most effective ad and tracker blocker. Free, open-source, blocks thousands of trackers.</div>
+      </div>
+    </div>
+    <div class="bp-item" onclick="toggleBP(this)">
+      <div class="bp-check">🗑️</div>
+      <div>
+        <div class="bp-label">Clear cookies regularly</div>
+        <div class="bp-desc">Set your browser to clear cookies on exit, or manually clear them weekly. Erases stored profiles.</div>
+      </div>
+    </div>
+    <div class="bp-item" onclick="toggleBP(this)">
+      <div class="bp-check">🕵️</div>
+      <div>
+        <div class="bp-label">Use private/incognito mode</div>
+        <div class="bp-desc">Doesn't store cookies between sessions. Remember: fingerprinting still works in incognito!</div>
+      </div>
+    </div>
+    <div class="bp-item" onclick="toggleBP(this)">
+      <div class="bp-check">❌</div>
+      <div>
+        <div class="bp-label">Reject non-essential cookies</div>
+        <div class="bp-desc">Always click "Reject" or "Only Necessary" on cookie banners. Don't click "Accept All".</div>
+      </div>
+    </div>
+    <div class="bp-item" onclick="toggleBP(this)">
+      <div class="bp-check">📧</div>
+      <div>
+        <div class="bp-label">Disable remote images in email</div>
+        <div class="bp-desc">Blocks tracking pixels from loading. Available in Gmail, Outlook, and Apple Mail settings.</div>
+      </div>
+    </div>
+    <div class="bp-item" onclick="toggleBP(this)">
+      <div class="bp-check">🌐</div>
+      <div>
+        <div class="bp-label">Use a VPN</div>
+        <div class="bp-desc">Hides your real IP address from trackers. Combined with other measures, significantly reduces tracking.</div>
+      </div>
+    </div>
+  </div>
+  <div id="bpScore" style="text-align:center;padding:1rem;font-family:'Syne',sans-serif;font-size:1.1rem;color:var(--text3);margin-top:.5rem">0 / 8 practices enabled 🔒</div>
+</section>
+
+<div class="divider"></div>
+
+<!-- SECTION 09: CONCLUSION -->
+<section id="conclusion" class="reveal">
+  <div class="conclusion">
+    <h2>Conclusion</h2>
+    <p>The web was built to be open and free — but tracking has turned it into a surveillance economy.</p>
+    <div class="big-quote">"Your data is not the price of free services —<br>it is a right you can protect."</div>
+    <p>Understanding cookies and tracking is the first step. Armed with this knowledge, you can make informed choices about your digital privacy.</p>
+    <div style="margin-top:1.5rem;display:flex;flex-wrap:wrap;gap:.75rem;justify-content:center">
+      <a href="#quiz" class="btn btn-primary" style="background:rgba(255,255,255,.2);border:2px solid rgba(255,255,255,.5)">🧠 Take the Quiz</a>
+      <a href="#home" class="btn btn-primary" style="background:rgba(255,255,255,.2);border:2px solid rgba(255,255,255,.5)">↑ Back to Top</a>
+    </div>
+  </div>
+</section>
+
+<!-- SECTION 10: QUIZ -->
+<section id="quiz" class="reveal">
+  <div class="sec-header">
+    <span class="sec-num">10</span>
+    <h2>🧠 Knowledge Quiz</h2>
+  </div>
+  <p>Test what you've learned. Select your answers — instant feedback!</p>
+
+  <div class="quiz-card">
+    <div class="quiz-num">Question 01 / 05</div>
+    <div class="quiz-q-text">What is a session cookie?</div>
+    <div class="quiz-opts">
+      <div class="quiz-opt" onclick="answer(this,false,'A session cookie can persist for years if the expiry is set far in the future.')">A cookie that lasts for years</div>
+      <div class="quiz-opt" onclick="answer(this,true,'Correct! A session cookie has no expiry date and is deleted when the browser tab or window is closed.')">A cookie deleted when the browser closes</div>
+      <div class="quiz-opt" onclick="answer(this,false,'HttpOnly is a security flag, not related to session duration.')">A cookie with the HttpOnly flag</div>
+      <div class="quiz-opt" onclick="answer(this,false,'Third-party cookies come from different domains, not necessarily sessions.')">A cookie from a third-party domain</div>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+
+  <div class="quiz-card">
+    <div class="quiz-num">Question 02 / 05</div>
+    <div class="quiz-q-text">What does the HttpOnly cookie flag do?</div>
+    <div class="quiz-opts">
+      <div class="quiz-opt" onclick="answer(this,false,'HttpOnly has nothing to do with transmission protocol — the Secure flag handles HTTPS.')">Forces HTTPS only transmission</div>
+      <div class="quiz-opt" onclick="answer(this,false,'HttpOnly does not affect expiration at all.')">Makes the cookie expire faster</div>
+      <div class="quiz-opt" onclick="answer(this,true,'Correct! HttpOnly prevents JavaScript from reading the cookie, protecting against XSS (Cross-Site Scripting) attacks where malicious scripts try to steal session cookies.')">Prevents JavaScript from reading the cookie</div>
+      <div class="quiz-opt" onclick="answer(this,false,'HttpOnly does not block third-party access — the SameSite attribute controls cross-site behavior.')">Blocks third-party access</div>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+
+  <div class="quiz-card">
+    <div class="quiz-num">Question 03 / 05</div>
+    <div class="quiz-q-text">What is browser fingerprinting?</div>
+    <div class="quiz-opts">
+      <div class="quiz-opt" onclick="answer(this,false,'This describes a tracking pixel, not fingerprinting.')">A hidden 1×1 image in emails</div>
+      <div class="quiz-opt" onclick="answer(this,false,'This describes supercookies/evercookies, not fingerprinting.')">A cookie that survives deletion</div>
+      <div class="quiz-opt" onclick="answer(this,true,'Correct! Browser fingerprinting works by combining dozens of browser/device attributes (screen size, fonts, GPU, timezone, plugins) into a unique hash that identifies you — without any cookies.')">Identifying users by combining browser attributes like screen size, fonts, and GPU</div>
+      <div class="quiz-opt" onclick="answer(this,false,'This is a general description of behavioral advertising, not fingerprinting specifically.')">Tracking which ads you click on</div>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+
+  <div class="quiz-card">
+    <div class="quiz-num">Question 04 / 05</div>
+    <div class="quiz-q-text">Which regulation requires cookie consent banners in Europe?</div>
+    <div class="quiz-opts">
+      <div class="quiz-opt" onclick="answer(this,false,'CCPA is a California law, not European.')">CCPA</div>
+      <div class="quiz-opt" onclick="answer(this,true,'Correct! GDPR (General Data Protection Regulation) requires explicit, informed consent before websites set non-essential cookies on users in the European Union.')">GDPR</div>
+      <div class="quiz-opt" onclick="answer(this,false,'HIPAA is a US healthcare privacy law.')">HIPAA</div>
+      <div class="quiz-opt" onclick="answer(this,false,'ISO 27001 is an information security standard, not a privacy law.')">ISO 27001</div>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+
+  <div class="quiz-card">
+    <div class="quiz-num">Question 05 / 05</div>
+    <div class="quiz-q-text">What does a tracking pixel primarily do?</div>
+    <div class="quiz-opts">
+      <div class="quiz-opt" onclick="answer(this,false,'Tracking pixels are loaded from external servers, not cached locally.')">Caches images for faster loading</div>
+      <div class="quiz-opt" onclick="answer(this,false,'Tracking pixels are about tracking, not encryption.')">Encrypts cookies in emails</div>
+      <div class="quiz-opt" onclick="answer(this,false,'Tracking pixels are invisible — they display nothing.')">Shows personalized content</div>
+      <div class="quiz-opt" onclick="answer(this,true,'Correct! A tracking pixel is a 1×1 invisible image. When your browser loads it, the request pings the tracker\'s server, revealing your IP address, email client, device type, and exact open timestamp.')">Confirms email opens by loading an invisible image from a tracker server</div>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+
+  <div class="quiz-score-board" id="scoreBoard">
+    <div class="qsb-score" id="finalScore">0/5</div>
+    <div class="qsb-label" id="scoreLabel">Complete the quiz above!</div>
+    <button class="btn btn-primary" onclick="resetQuiz()" style="margin-top:1rem">🔄 Retake Quiz</button>
+  </div>
+</section>
+
+</main>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-inner">
+    <div>
+      <div class="footer-brand">🍪 Cookie<span>Lab</span></div>
+      <div class="footer-info">
+        <strong>Presented by:</strong> Bousselham Mohamed Yassine and Boutaiba Ghoulamallah<br>
+        <strong>Course:</strong> Introduction to Computer Security<br>
+        <strong>Year:</strong> 2026
+      </div>
+    </div>
+    <div style="text-align:right">
+      <div class="footer-tag" style="margin-bottom:.75rem">HTML · CSS · JavaScript</div>
+      <div style="font-size:.8rem;color:var(--text3)">No cookies were harmed<br>in the making of this site 🍪</div>
+    </div>
+  </div>
+</footer>
+
+<!-- CONSENT BANNER (ironic!) -->
+<div id="consentBanner">
+  <div class="consent-text">
+    <strong>🍪 Ironic Cookie Notice:</strong> This educational site about cookies... uses zero tracking cookies! But in real life, clicking "Accept All" on other sites gives them permission to track everything you do online.
+  </div>
+  <div class="consent-btns">
+    <button class="cbtn cbtn-accept" onclick="closeBanner()">😄 Got It!</button>
+    <button class="cbtn cbtn-reject" onclick="closeBanner()">🛡️ Reject (same effect)</button>
+  </div>
+</div>
+
+<script>
+// ===== DARK MODE =====
+function toggleDark() {
+  const html = document.documentElement;
+  const isDark = html.getAttribute('data-theme') === 'dark';
+  html.setAttribute('data-theme', isDark ? 'light' : 'dark');
+  document.getElementById('darkBtn').textContent = isDark ? '🌙 Dark' : '☀️ Light';
+  localStorage.setItem('theme', isDark ? 'light' : 'dark');
+}
+(function() {
+  const saved = localStorage.getItem('theme') || 'light';
+  document.documentElement.setAttribute('data-theme', saved);
+  const btn = document.getElementById('darkBtn');
+  if (btn) btn.textContent = saved === 'dark' ? '☀️ Light' : '🌙 Dark';
+})();
+
+// ===== HAMBURGER =====
+function toggleDrawer() {
+  document.getElementById('mobileDrawer').classList.toggle('open');
+  document.getElementById('hamburger').classList.toggle('open');
+}
+function closeDrawer() {
+  document.getElementById('mobileDrawer').classList.remove('open');
+  document.getElementById('hamburger').classList.remove('open');
+}
+
+// ===== PROGRESS BAR =====
+window.addEventListener('scroll', () => {
+  const scrollTop = window.scrollY;
+  const docHeight = document.body.scrollHeight - window.innerHeight;
+  const pct = (scrollTop / docHeight) * 100;
+  document.getElementById('progress-bar').style.width = pct + '%';
+  updateTOC();
+});
+
+// ===== TOC ACTIVE =====
+function updateTOC() {
+  const sections = document.querySelectorAll('section[id]');
+  const links = document.querySelectorAll('.toc-link');
+  let current = '';
+  sections.forEach(s => {
+    if (window.scrollY >= s.offsetTop - 100) current = s.id;
+  });
+  links.forEach(l => {
+    l.classList.toggle('active', l.getAttribute('href') === '#' + current);
+  });
+}
+
+// ===== SCROLL REVEAL =====
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+}, { threshold: 0.08 });
+document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+// ===== CONSENT BANNER =====
+setTimeout(() => {
+  document.getElementById('consentBanner').classList.add('show');
+}, 1800);
+function closeBanner() {
+  document.getElementById('consentBanner').style.transform = 'translateY(100%)';
+}
+
+// ===== EXPAND NODES =====
+const panels = {
+  session: 'panel-session', persistent: 'panel-persistent',
+  firstparty: 'panel-firstparty', thirdparty: 'panel-thirdparty',
+  secure: 'panel-secure', httponly: 'panel-httponly',
+  fp: 'panel-fp', ls: 'panel-ls', px: 'panel-px', sc: 'panel-sc',
+  adv: 'panel-adv', ana: 'panel-ana', social: 'panel-social', broker: 'panel-broker'
+};
+const activeNodes = {};
+function toggleNode(key) {
+  const panel = document.getElementById(panels[key]);
+  if (!panel) return;
+  const isOpen = panel.classList.contains('open');
+  // close all panels of same group first
+  document.querySelectorAll('.expand-panel').forEach(p => p.classList.remove('open'));
+  document.querySelectorAll('.expand-node').forEach(n => n.classList.remove('active'));
+  if (!isOpen) {
+    panel.classList.add('open');
+    // find the node that triggered this
+    event.currentTarget.classList.add('active');
+    setTimeout(() => panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 100);
+  }
+}
+
+// ===== COOKIE ANATOMY =====
+function toggleCA(row) {
+  const wasActive = row.classList.contains('active');
+  document.querySelectorAll('.ca-row').forEach(r => r.classList.remove('active'));
+  if (!wasActive) row.classList.add('active');
+}
+
+// ===== JOURNEY STEPS =====
+function toggleJstep(step) {
+  const isOpen = step.classList.contains('open');
+  document.querySelectorAll('.jstep').forEach(s => s.classList.remove('open'));
+  if (!isOpen) step.classList.add('open');
+}
+
+// ===== COPY CODE =====
+function copyCode(btn) {
+  const pre = btn.closest('.code-wrap').querySelector('pre');
+  navigator.clipboard.writeText(pre.innerText).then(() => {
+    btn.textContent = '✅ Copied!';
+    btn.classList.add('done');
+    setTimeout(() => { btn.textContent = '📋 Copy'; btn.classList.remove('done'); }, 2000);
+  });
+}
+
+// ===== DEMO SIMULATION =====
+let cookieState = { visited: false, cookies: [], blockerOn: false };
+let visitCount = 0;
+
+function termLog(lines) {
+  const out = document.getElementById('termOutput');
+  lines.forEach((l, i) => {
+    setTimeout(() => {
+      const span = document.createElement('span');
+      span.className = 't-line ' + (l.cls || '');
+      span.textContent = l.text;
+      out.appendChild(span);
+      out.scrollTop = out.scrollHeight;
+    }, i * 80);
+  });
+}
+
+function updateInspector(cookies) {
+  const insp = document.getElementById('cookieInspector');
+  const rows = document.getElementById('ciRows');
+  if (cookies.length === 0) { insp.classList.remove('show'); return; }
+  insp.classList.add('show');
+  rows.innerHTML = cookies.map(c => `
+    <div class="ci-row">
+      <span class="ci-key">${c.name}</span>
+      <span class="ci-val">${c.value}</span>
+    </div>
+    <div class="ci-row" style="font-size:10px;color:var(--text3);padding-top:0">
+      <span class="ci-key">domain</span><span style="color:var(--text3)">${c.domain}</span>
+      &nbsp;&nbsp;<span class="ci-key">expires</span><span style="color:var(--text3)">${c.expires}</span>
+    </div>
+  `).join('');
+}
+
+function demoVisit() {
+  visitCount++;
+  const blocked = cookieState.blockerOn;
+  termLog([
+    { text: '> GET https://news-site.com/ HTTP/1.1', cls: 't-info' },
+    { text: '  User-Agent: Chrome/120 · IP: 197.30.45.112', cls: 't-cm' },
+    { text: '' },
+    { text: '< HTTP/1.1 200 OK', cls: 't-ok' },
+    { text: '< Content-Type: text/html', cls: 't-cm' },
+    ...(blocked ? [
+      { text: '< Set-Cookie: _ga=GA1.2.xxx [BLOCKED by tracker blocker]', cls: 't-err' },
+      { text: '< Set-Cookie: _fbp=fb.1.xxx   [BLOCKED by tracker blocker]', cls: 't-err' },
+      { text: '< Set-Cookie: _uid=ad-99182    [BLOCKED by tracker blocker]', cls: 't-err' },
+      { text: '✓ 3 trackers blocked. Only essential cookies allowed.', cls: 't-ok' },
+    ] : [
+      { text: '< Set-Cookie: _ga=GA1.2.1234.5678; Expires=2027-01-01; Domain=.news-site.com', cls: 't-ok' },
+      { text: '< Set-Cookie: _fbp=fb.1.168000.99182; Expires=2027-01-01', cls: 't-ok' },
+      { text: '< Set-Cookie: session_uid=ad-trk-99182; Expires=2027-06-01', cls: 't-ok' },
+      { text: `⚠ 3 tracking cookies set. Visit #${visitCount} recorded.`, cls: 't-info' },
+    ]),
+    { text: '' },
+  ]);
+  cookieState.visited = true;
+  if (!blocked) {
+    cookieState.cookies = [
+      { name: '_ga', value: 'GA1.2.1234.5678', domain: '.news-site.com', expires: '2027-01-01' },
+      { name: '_fbp', value: 'fb.1.168000.99182', domain: '.news-site.com', expires: '2027-01-01' },
+      { name: 'session_uid', value: 'ad-trk-99182', domain: '.news-site.com', expires: '2027-06-01' },
+    ];
+    updateInspector(cookieState.cookies);
+  }
+}
+
+function demoReturn() {
+  if (!cookieState.visited) {
+    termLog([{ text: '! Visit the website first!', cls: 't-err' }]);
+    return;
+  }
+  if (cookieState.cookies.length === 0) {
+    termLog([
+      { text: '> GET https://news-site.com/', cls: 't-info' },
+      { text: '  No cookies sent (cleared or blocked)', cls: 't-cm' },
+      { text: '' },
+      { text: '< Server: No returning user found.', cls: 't-cm' },
+      { text: '< You appear as a brand new visitor.', cls: 't-ok' },
+      { text: '' },
+    ]);
+    return;
+  }
+  termLog([
+    { text: '> GET https://news-site.com/', cls: 't-info' },
+    { text: '  Cookie: _ga=GA1.2.1234.5678; _fbp=fb.1.168000.99182; session_uid=ad-trk-99182', cls: 't-cm' },
+    { text: '' },
+    { text: '< Server matched returning visitor #99182', cls: 't-ok' },
+    { text: '< Welcome back! Last seen: 2 minutes ago from New York', cls: 't-ok' },
+    { text: '< Showing personalized ads based on your profile...', cls: 't-info' },
+    { text: '< Profile: Tech enthusiast · Income: High · Age: 20-30', cls: 't-err' },
+    { text: '' },
+  ]);
+}
+
+function demoClear() {
+  termLog([
+    { text: '> Executing: document.cookie = "" (clear all)', cls: 't-info' },
+    { text: '  Clearing localStorage...', cls: 't-cm' },
+    { text: '  Clearing sessionStorage...', cls: 't-cm' },
+    { text: '' },
+    { text: '✓ All cookies and storage cleared!', cls: 't-ok' },
+    { text: '  _ga → deleted', cls: 't-ok' },
+    { text: '  _fbp → deleted', cls: 't-ok' },
+    { text: '  session_uid → deleted', cls: 't-ok' },
+    { text: '' },
+    { text: 'Note: Fingerprint still works without cookies!', cls: 't-err' },
+    { text: '' },
+  ]);
+  cookieState.cookies = [];
+  updateInspector([]);
+}
+
+function demoBlock() {
+  cookieState.blockerOn = !cookieState.blockerOn;
+  const on = cookieState.blockerOn;
+  const btn = document.querySelector('.db-amber');
+  btn.textContent = on ? '🚫 Blocker ON' : '🛡️ Enable Blocker';
+  btn.style.background = on ? 'rgba(16,185,129,.2)' : '';
+  btn.style.borderColor = on ? 'rgba(16,185,129,.4)' : '';
+  btn.style.color = on ? '#10b981' : '';
+  termLog(on ? [
+    { text: '> Activating tracker blocker...', cls: 't-info' },
+    { text: '✓ uBlock Origin: ACTIVE', cls: 't-ok' },
+    { text: '✓ Blocking: doubleclick.net, facebook.net, google-analytics.com', cls: 't-ok' },
+    { text: '✓ Blocking: adservice.google.com, scorecardresearch.com', cls: 't-ok' },
+    { text: '✓ 2,847 tracking domains blocked', cls: 't-ok' },
+    { text: '' },
+    { text: 'Now try "Visit Website" to see the difference!', cls: 't-info' },
+    { text: '' },
+  ] : [
+    { text: '> Tracker blocker: DISABLED', cls: 't-err' },
+    { text: '⚠ Trackers will now load freely', cls: 't-err' },
+    { text: '' },
+  ]);
+}
+
+// ===== LAW CARDS (already inline onclick) =====
+
+// ===== BEST PRACTICES =====
+let bpChecked = 0;
+function toggleBP(item) {
+  const wasChecked = item.classList.contains('checked');
+  item.classList.toggle('checked');
+  bpChecked += wasChecked ? -1 : 1;
+  const score = document.getElementById('bpScore');
+  score.textContent = `${bpChecked} / 8 practices enabled ${bpChecked >= 8 ? '🏆 Privacy Pro!' : bpChecked >= 5 ? '🛡️ Good!' : '🔒'}`;
+  score.style.color = bpChecked >= 5 ? 'var(--success)' : bpChecked >= 3 ? 'var(--warn)' : 'var(--text3)';
+}
+
+// ===== QUIZ =====
+let answeredCount = 0;
+let correctCount = 0;
+const totalQs = 5;
+
+function answer(opt, isCorrect, explanation) {
+  const card = opt.closest('.quiz-card');
+  if (card.dataset.answered) return;
+  card.dataset.answered = 'true';
+  answeredCount++;
+  if (isCorrect) correctCount++;
+
+  card.querySelectorAll('.quiz-opt').forEach(o => {
+    o.classList.add('disabled');
+    o.onclick = null;
+  });
+  opt.classList.add(isCorrect ? 'correct' : 'wrong');
+
+  const fb = card.querySelector('.quiz-feedback');
+  fb.style.display = 'flex';
+  fb.className = 'quiz-feedback ' + (isCorrect ? 'feedback-ok' : 'feedback-no');
+  fb.innerHTML = (isCorrect ? '✅ ' : '❌ ') + explanation;
+
+  if (answeredCount === totalQs) {
+    setTimeout(showScore, 600);
+  }
+}
+
+function showScore() {
+  const board = document.getElementById('scoreBoard');
+  board.style.display = 'block';
+  document.getElementById('finalScore').textContent = `${correctCount}/${totalQs}`;
+  const labels = ['Keep studying! 📚', 'Getting there! 💪', 'Not bad! 👍', 'Great job! 🎉', 'Privacy expert! 🏆', 'Perfect score! 🌟'];
+  document.getElementById('scoreLabel').textContent = labels[correctCount] || labels[0];
+  board.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+function resetQuiz() {
+  answeredCount = 0; correctCount = 0;
+  document.querySelectorAll('.quiz-card').forEach(c => {
+    delete c.dataset.answered;
+    c.querySelectorAll('.quiz-opt').forEach(o => {
+      o.classList.remove('correct', 'wrong', 'disabled');
+    });
+    const fb = c.querySelector('.quiz-feedback');
+    fb.style.display = 'none';
+  });
+  document.getElementById('scoreBoard').style.display = 'none';
+  // Re-bind onclick
+  document.querySelectorAll('.quiz-opt').forEach(o => {
+    const newOpt = o.cloneNode(true);
+    o.parentNode.replaceChild(newOpt, o);
+  });
+  // Re-init quiz answers
+  initQuiz();
+}
+
+function initQuiz() {
+  const cards = document.querySelectorAll('.quiz-card');
+  const answers = [
+    [false, true, false, false],
+    [false, false, true, false],
+    [false, false, true, false],
+    [false, true, false, false],
+    [false, false, false, true]
+  ];
+  const explanations = [
+    ['Session cookies are deleted on browser close, not persistent.', 'Correct! Deleted when browser window closes.', 'HttpOnly is a security flag, not session-related.', 'Third-party refers to domain origin, not duration.'],
+    ['HttpOnly has nothing to do with HTTPS — that\'s the Secure flag.', 'HttpOnly doesn\'t affect expiry.', 'Correct! Prevents JS from reading the cookie, blocking XSS theft.', 'HttpOnly doesn\'t block third-party access.'],
+    ['That\'s a tracking pixel.', 'That describes evercookies/supercookies.', 'Correct! Browser attributes hashed into a unique ID — no cookies needed.', 'That\'s behavioral ad tracking generally.'],
+    ['CCPA is Californian, not European.', 'Correct! GDPR requires explicit consent before non-essential cookies.', 'HIPAA is US healthcare law.', 'ISO 27001 is a security standard, not a privacy law.'],
+    ['Tracking pixels load from external servers, not cached locally.', 'Pixels are about tracking, not encryption.', 'Pixels are invisible — they display nothing.', 'Correct! Confirms email open by loading a 1x1 invisible image from a tracker server.']
+  ];
+  cards.forEach((card, ci) => {
+    card.querySelectorAll('.quiz-opt').forEach((opt, oi) => {
+      opt.onclick = function() { answer(this, answers[ci][oi], explanations[ci][oi]); };
+    });
+  });
+}
+initQuiz();
+
+// ===== PARTICLES =====
+const canvas = document.getElementById('particleCanvas');
+const ctx = canvas.getContext('2d');
+let particles = [];
+let animFrame;
+
+function resizeCanvas() {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+}
+resizeCanvas();
+window.addEventListener('resize', resizeCanvas);
+
+function createParticles() {
+  particles = [];
+  for (let i = 0; i < 40; i++) {
+    particles.push({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height,
+      r: Math.random() * 3 + 1,
+      dx: (Math.random() - .5) * .4,
+      dy: (Math.random() - .5) * .4,
+      opacity: Math.random() * .4 + .1
+    });
+  }
+}
+createParticles();
+
+function animParticles() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+  const color = isDark ? '0,214,143' : '0,135,90';
+  particles.forEach(p => {
+    p.x += p.dx;
+    p.y += p.dy;
+    if (p.x < 0 || p.x > canvas.width) p.dx *= -1;
+    if (p.y < 0 || p.y > canvas.height) p.dy *= -1;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(${color},${p.opacity})`;
+    ctx.fill();
+  });
+  // Draw connections
+  for (let i = 0; i < particles.length; i++) {
+    for (let j = i+1; j < particles.length; j++) {
+      const dist = Math.hypot(particles[i].x - particles[j].x, particles[i].y - particles[j].y);
+      if (dist < 120) {
+        ctx.beginPath();
+        ctx.moveTo(particles[i].x, particles[i].y);
+        ctx.lineTo(particles[j].x, particles[j].y);
+        ctx.strokeStyle = `rgba(${color},${.1 * (1 - dist/120)})`;
+        ctx.lineWidth = .5;
+        ctx.stroke();
+      }
+    }
+  }
+  animFrame = requestAnimationFrame(animParticles);
+}
+animParticles();
+</script>
+</body>
+</html>
